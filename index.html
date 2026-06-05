@@ -219,7 +219,9 @@
     if(data.t2 > 60) alertFeed.innerHTML += `<div class="alert-box">⚠ CRITICAL WARNING: Motor Temperature T2 exceeds thresholds (${data.t2.toFixed(2)}°C)</div>`;
 
     // 2. Manage 10-Reading Moving Graph State
-    const timeLabel = data.timestamp ? data.timestamp.split(' ') : new Date().toLocaleTimeString();
+    const timeLabel = data.timestamp
+    ? data.timestamp.split(' ')[1]
+    : new Date().toLocaleTimeString();
     
     currentGraphTimeline.push(timeLabel);
     motor1AmpData.push(data.ct1_amps);
@@ -235,10 +237,20 @@
     // 3. 1-Minute Interval CSV Data Buffer Assembly
     // Uses the system timestamp provided via payload or client clock backup
     let targetTime = new Date();
-    if(data.timestamp && data.timestamp !== "Unknown") {
-      // Parse current timestamp directly
-      let parts = data.timestamp.split(/[- :]/);
-      targetTime = new Date(parts, parts-1, parts, parts, parts, parts);
+
+    if (data.timestamp && data.timestamp !== "Unknown") {
+      const parts = data.timestamp.match(/\d+/g);
+
+      if(parts && parts.length >= 6) {
+        targetTime = new Date(
+          Number(parts[0]),
+          Number(parts[1]) - 1,
+          Number(parts[2]),
+          Number(parts[3]),
+          Number(parts[4]),
+          Number(parts[5])
+        );
+      }
     }
     
     let currentMinute = targetTime.getMinutes();
